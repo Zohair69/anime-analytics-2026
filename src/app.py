@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.io as pio  # pour définir un thème sombre par défaut sur tous les graphiques
 import matplotlib.pyplot as plt
 import seaborn as sns
 from streamlit_option_menu import option_menu
@@ -22,6 +23,8 @@ def load_data():
     return df
 
 df_anime = load_data()
+
+pio.templates.default = "plotly_dark"  # applique un fond sombre à tous les graphiques Plotly de l'app
 
 # Navigation latérale
 with st.sidebar:
