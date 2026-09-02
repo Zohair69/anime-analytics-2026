@@ -6,7 +6,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 import seaborn as sns
-from streamlit_option_menu import option_menu
 
 # Configuration de la page
 st.set_page_config(
@@ -24,22 +23,16 @@ def load_data():
 df_anime = load_data()
 
 # Navigation latérale
-with st.sidebar:
-    rubrique = option_menu(
-        menu_title="Navigation",  # titre affiché en haut du menu
-        options=[
-            "Dashboard Général",
-            "Axe 1 : Marché & Formats",
-            "Axe 2 : Succès & Popularité",
-            "Axe 3 : Genres & Acteurs"
-        ],
-        icons=["bar-chart", "shop", "fire", "film"],  # icônes Bootstrap Icons, une par option
-        menu_icon="cast",  # icône à côté du titre du menu
-        default_index=0,
-        styles={
-            "nav-link-selected": {"background-color": "#e78ac3"},  # couleur de l'onglet actif = thème rose de l'app
-        }
-    )
+st.sidebar.title("Navigation")
+rubrique = st.sidebar.radio(
+    "Choisissez une rubrique :",
+    [
+        "Dashboard Général",
+        "Axe 1 : Marché & Formats",
+        "Axe 2 : Succès & Popularité",
+        "Axe 3 : Genres & Acteurs"
+    ]
+)
 
 # ---------------------------------------------------------
 # DASHBOARD GÉNÉRAL
@@ -445,8 +438,3 @@ elif rubrique == "Axe 3 : Genres & Acteurs":
                 st.write(f"- **Nombre de succès exceptionnels isolés :** {len(outliers_high)}")
         else:
             st.info("Aucune donnée de score disponible pour ce studio.")
-
-# Pied de page affiché sur toutes les pages, quel que soit l'onglet sélectionné
-st.markdown("---")
-st.markdown("Projet réalisé dans le cadre de la formation Data Analyst")
-st.markdown("Source des données : [MyAnimeList](https://myanimelist.net)")
