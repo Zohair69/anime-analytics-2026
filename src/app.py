@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 import seaborn as sns
+from streamlit_option_menu import option_menu
 
 # Configuration de la page
 st.set_page_config(
@@ -23,16 +24,22 @@ def load_data():
 df_anime = load_data()
 
 # Navigation latérale
-st.sidebar.title("Navigation")
-rubrique = st.sidebar.radio(
-    "Choisissez une rubrique :",
-    [
-        "Dashboard Général",
-        "Axe 1 : Marché & Formats",
-        "Axe 2 : Succès & Popularité",
-        "Axe 3 : Genres & Acteurs"
-    ]
-)
+with st.sidebar:
+    rubrique = option_menu(
+        menu_title="Navigation",  # titre affiché en haut du menu
+        options=[
+            "Dashboard Général",
+            "Axe 1 : Marché & Formats",
+            "Axe 2 : Succès & Popularité",
+            "Axe 3 : Genres & Acteurs"
+        ],
+        icons=["bar-chart", "shop", "fire", "film"],  # icônes Bootstrap Icons, une par option
+        menu_icon="cast",  # icône à côté du titre du menu
+        default_index=0,
+        styles={
+            "nav-link-selected": {"background-color": "#e78ac3"},  # couleur de l'onglet actif = thème rose de l'app
+        }
+    )
 
 # ---------------------------------------------------------
 # DASHBOARD GÉNÉRAL
