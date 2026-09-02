@@ -145,21 +145,23 @@ elif rubrique == "Axe 1 : Marché & Formats":
 # ---------------------------------------------------------
 elif rubrique == "Axe 2 : Succès & Popularité":
     st.title("🔥 Axe 2 : Facteurs de succès, popularité et corrélation")
-    
+
     # 1. Matrice de corrélation
     st.subheader("Question 1 : L'engagement du public est-il corrélé avec la note ?")
-    num_cols = df_anime.select_dtypes(include=[np.number]).columns
-    corr_matrix = df_anime[num_cols].corr()
+    cols_corr = ["score", "members", "favorites", "scored_by"]
+    if all(col in df_anime.columns for col in cols_corr):
+        corr_matrix = df_anime[cols_corr].corr()  # .corr() ignore les paires avec NaN
 
-    fig = px.imshow(
-    corr_matrix,
-    text_auto=".2f",  # affiche les valeurs numériques arrondies à 2 décimales dans les cases
-    color_continuous_scale="RdBu_r",  # dégradé rouge-bleu : bleu = corrélation négative, rouge = positive
-    zmin=-1, zmax=1,  # échelle fixe pour bien lire l'intensité
-    title="Corrélation entre engagement du public et score"
-    )
-
-fig.show()  # affiche le graphique 
+        fig1_axe2 = px.imshow(
+            corr_matrix,
+            text_auto=".2f",  # affiche les valeurs arrondies dans les cases
+            color_continuous_scale="RdBu_r",  # bleu = corrélation négative, rouge = positive
+            zmin=-1, zmax=1,
+            title="Corrélation entre engagement du public et score"
+        )
+        st.plotly_chart(fig1_axe2, use_container_width=True)  # affiche le graphique dans la page Streamlit
+    else:
+        st.warning("Colonnes manquantes pour calculer la corrélation.")
 
     st.markdown("---")
 
@@ -167,19 +169,18 @@ fig.show()  # affiche le graphique
     st.subheader("Question 2 : Le type de source a-t-il un impact sur la note finale ?")
     if 'source' in df_anime.columns:
         score_par_source = df_anime.groupby("source")["score"].mean().sort_values(ascending=False)
-        
-        top10_source = score_par_source.head(10)
+        top10_source = score_par_source.head(10)  # on garde les 10 meilleurs pour la lisibilité
 
-        fig = px.bar(
-        x=top10_source.values,
-        y=top10_source.index,
-        orientation="h",  # barres horizontales
-        color=top10_source.values,  # dégradé de couleur selon le score moyen
-        color_continuous_scale="Blues_r",
-        labels={"x": "Score moyen", "y": "Support d'origine"},
-        title="Top 10 des supports d'origine par score moyen")
-
-fig.show()  # affiche le graphique 
+        fig2_axe2 = px.bar(
+            x=top10_source.values,
+            y=top10_source.index,
+            orientation="h",
+            color=top10_source.values,
+            color_continuous_scale="Blues_r",
+            labels={"x": "Score moyen", "y": "Support d'origine"},
+            title="Top 10 des supports d'origine par score moyen"
+        )
+        st.plotly_chart(fig2_axe2, use_container_width=True)
     else:
         st.warning("La colonne 'source' n'est pas présente dans le jeu de données.")
 
@@ -189,23 +190,52 @@ fig.show()  # affiche le graphique
     st.subheader("Question 3 : Le classement reflète-t-il vraiment la popularité ?")
     if 'popularity' in df_anime.columns and 'rank' in df_anime.columns:
         df_rank = df_anime.dropna(subset=['popularity', 'rank']).copy()
-        
-        # Création des catégories de rangs
-        df_rank['categorie_rank'] = pd.qcut(df_rank['rank'], q=5, labels=['Top 20%', '20-40%', '40-60%', '60-80%', '80-100%'])
-        df_rank["popularity_inversee"] = df_rank["popularity"].max() - df_rank["popularity"]
+
+        # mêmes tranches de classement que dans le notebook
+        bins = [0, 1000, 5000, 15000, df_rank["rank"].max()]
+        labels = ["Top 1000", "1000-5000", "5000-15000", "15000+"]
+        df_rank["categorie_rank"] = pd.cut(df_rank["rank"], bins=bins, labels=labels)
+        df_rank["popularity_inversee"] = df_rank["popularity"].max() - df_rank["popularity"]  # "plus populaire" = valeur plus haute
 
         popularity_inv_moyenne = df_rank.groupby("categorie_rank", observed=True)["popularity_inversee"].mean()
 
-        fig_pop, ax = plt.subplots(figsize=(7, 5))
-        sns.barplot(x=popularity_inv_moyenne.index, y=popularity_inv_moyenne.values, color="#2b6cb0", ax=ax)
-        ax.set_xlabel("Catégorie de classement")
-        ax.set_ylabel("Popularité (plus haut = plus populaire)")
-        ax.set_title("Popularité selon la catégorie de classement")
-        plt.tight_layout()
-        st.pyplot(fig_pop)
+        fig3_axe2 = px.bar(
+            x=popularity_inv_moyenne.index,
+            y=popularity_inv_moyenne.values,
+            color=popularity_inv_moyenne.values,
+            color_continuous_scale="Blues",
+            labels={"x": "Catégorie de classement", "y": "Popularité (plus haut = plus populaire)"},
+            title="Popularité selon la catégorie de classement"
+        )
+        st.plotly_chart(fig3_axe2, use_container_width=True)
     else:
         st.warning("Les colonnes 'popularity' ou 'rank' manquent dans le jeu de données.")
 
+    st.markdown("---")
+
+    # 4. Public ciblé (rating) vs note
+    st.subheader("Question 4 : Le public ciblé (rating) a-t-il un impact sur la note ?")
+    if 'rating' in df_anime.columns:
+        # tableau numpy des scores par rating, moyenne et écart-type calculés avec numpy
+        scores_par_rating = df_anime.groupby("rating")["score"].apply(lambda x: np.array(x.dropna()))
+        moyennes = scores_par_rating.apply(np.mean)
+        ecarts_types = scores_par_rating.apply(np.std)
+        resultat_rating = pd.DataFrame(
+            {"score_moyen": moyennes, "ecart_type": ecarts_types}
+        ).sort_values("score_moyen", ascending=False)
+
+        fig4_axe2 = px.bar(
+            resultat_rating,
+            x=resultat_rating.index,
+            y="score_moyen",
+            color="score_moyen",
+            color_continuous_scale="Blues",
+            labels={"x": "Public ciblé (rating)", "score_moyen": "Score moyen"},
+            title="Score moyen par public ciblé"
+        )
+        st.plotly_chart(fig4_axe2, use_container_width=True)
+    else:
+        st.warning("La colonne 'rating' n'est pas présente dans le jeu de données.")
 # ---------------------------------------------------------
 # AXE 3 : GENRES & ACTEURS
 # ---------------------------------------------------------
