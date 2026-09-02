@@ -151,17 +151,15 @@ elif rubrique == "Axe 2 : Succès & Popularité":
     num_cols = df_anime.select_dtypes(include=[np.number]).columns
     corr_matrix = df_anime[num_cols].corr()
 
-    fig_corr, ax = plt.subplots(figsize=(6, 5))
-    sns.heatmap(
-        corr_matrix,
-        annot=True,
-        cmap="coolwarm",
-        fmt=".2f",
-        vmin=-1, vmax=1,
-        ax=ax
+    fig = px.imshow(
+    corr_matrix,
+    text_auto=".2f",  # affiche les valeurs numériques arrondies à 2 décimales dans les cases
+    color_continuous_scale="RdBu_r",  # dégradé rouge-bleu : bleu = corrélation négative, rouge = positive
+    zmin=-1, zmax=1,  # échelle fixe pour bien lire l'intensité
+    title="Corrélation entre engagement du public et score"
     )
-    ax.set_title("Corrélation entre engagement du public et score")
-    st.pyplot(fig_corr)
+
+fig.show()  # affiche le graphique 
 
     st.markdown("---")
 
@@ -170,20 +168,18 @@ elif rubrique == "Axe 2 : Succès & Popularité":
     if 'source' in df_anime.columns:
         score_par_source = df_anime.groupby("source")["score"].mean().sort_values(ascending=False)
         
-        fig_source, ax = plt.subplots(figsize=(8, 6))
-        sns.barplot(
-            x=score_par_source.values,
-            y=score_par_source.index,
-            palette="Blues_r",
-            hue=score_par_source.index,
-            legend=False,
-            ax=ax
-        )
-        ax.set_xlabel("Score moyen")
-        ax.set_ylabel("Support d'origine")
-        ax.set_title("Score moyen par support d'origine")
-        plt.tight_layout()
-        st.pyplot(fig_source)
+        top10_source = score_par_source.head(10)
+
+        fig = px.bar(
+        x=top10_source.values,
+        y=top10_source.index,
+        orientation="h",  # barres horizontales
+        color=top10_source.values,  # dégradé de couleur selon le score moyen
+        color_continuous_scale="Blues_r",
+        labels={"x": "Score moyen", "y": "Support d'origine"},
+        title="Top 10 des supports d'origine par score moyen")
+
+fig.show()  # affiche le graphique 
     else:
         st.warning("La colonne 'source' n'est pas présente dans le jeu de données.")
 
