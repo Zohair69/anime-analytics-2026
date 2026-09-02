@@ -438,3 +438,8 @@ elif rubrique == "Axe 3 : Genres & Acteurs":
                 st.write(f"- **Nombre de succès exceptionnels isolés :** {len(outliers_high)}")
         else:
             st.info("Aucune donnée de score disponible pour ce studio.")
+
+# Pied de page affiché sur toutes les pages, quel que soit l'onglet sélectionné
+st.markdown("---")
+st.markdown("Projet réalisé dans le cadre de la formation Data Analyst")
+st.markdown("Source des données : [MyAnimeList](https://myanimelist.net)")
