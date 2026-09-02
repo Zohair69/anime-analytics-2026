@@ -101,20 +101,29 @@ elif rubrique == "Axe 1 : Marché & Formats":
 
     # 3. Distribution des notes et durées
     st.subheader("3. Comment se distribuent les notes et les durées des anime ?")
-    fig3, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-    axes[0].hist(df_anime["score"].dropna(), bins=20)
-    axes[0].set_title("Distribution des notes")
-    axes[0].set_xlabel("Score")
-    axes[0].set_ylabel("Nombre d'anime")
+    col1, col2 = st.columns(2)
 
-    axes[1].hist(df_anime["episodes"].dropna(), bins=20, range=(0, 100))
-    axes[1].set_title("Distribution du nombre d'épisodes (0-100)")
-    axes[1].set_xlabel("Episodes")
-    axes[1].set_ylabel("Nombre d'anime")
+    with col1:
+        bins_score = st.slider("Nombre de tranches (score)", min_value=5, max_value=50, value=20)
+        fig_score = px.histogram(
+            df_anime.dropna(subset=["score"]),
+            x="score",
+            nbins=bins_score,
+            title="Distribution des notes"
+        )
+        st.plotly_chart(fig_score, use_container_width=True)
 
-    plt.tight_layout()
-    st.pyplot(fig3)
+    with col2:
+        bins_ep = st.slider("Nombre de tranches (épisodes)", min_value=5, max_value=50, value=20)
+        df_episodes_filtre = df_anime[df_anime["episodes"] <= 100].dropna(subset=["episodes"])
+        fig_ep = px.histogram(
+            df_episodes_filtre,
+            x="episodes",
+            nbins=bins_ep,
+            title="Distribution du nombre d'épisodes (0-100)"
+        )
+        st.plotly_chart(fig_ep, use_container_width=True)
 
     st.markdown("---")
 
