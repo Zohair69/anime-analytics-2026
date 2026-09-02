@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 import seaborn as sns
+from streamlit_option_menu import option_menu
 
 # Configuration de la page
 st.set_page_config(
@@ -23,16 +24,22 @@ def load_data():
 df_anime = load_data()
 
 # Navigation latérale
-st.sidebar.title("Navigation")
-rubrique = st.sidebar.radio(
-    "Choisissez une rubrique :",
-    [
-        "Dashboard Général",
-        "Axe 1 : Marché & Formats",
-        "Axe 2 : Succès & Popularité",
-        "Axe 3 : Genres & Acteurs"
-    ]
-)
+with st.sidebar:
+    rubrique = option_menu(
+        menu_title="Navigation",  # titre affiché en haut du menu
+        options=[
+            "Dashboard Général",
+            "Axe 1 : Marché & Formats",
+            "Axe 2 : Succès & Popularité",
+            "Axe 3 : Genres & Acteurs"
+        ],
+        icons=["bar-chart", "shop", "fire", "film"],  # icônes Bootstrap Icons, une par option
+        menu_icon="cast",  # icône à côté du titre du menu
+        default_index=0,
+        styles={
+            "nav-link-selected": {"background-color": "#2b6cb0"},  # couleur de l'onglet actif = thème bleu de l'app
+        }
+    )
 
 # ---------------------------------------------------------
 # DASHBOARD GÉNÉRAL
@@ -68,7 +75,8 @@ elif rubrique == "Axe 1 : Marché & Formats":
         x=repartition_types.values,
         y=repartition_types.index,
         orientation="h",
-        title="Répartition des anime par format de production"
+        title="Répartition des anime par format de production",
+        color_discrete_sequence=["#2b6cb0"]  # couleur d'accent bleu de l'app
     )
     fig1.update_yaxes(categoryorder="total ascending", title_text="Format")
     fig1.update_xaxes(title_text="Nombre d'anime")
@@ -91,7 +99,8 @@ elif rubrique == "Axe 1 : Marché & Formats":
             x=sorties_par_annee.index,
             y=sorties_par_annee.values,
             title="Évolution du nombre de sorties d'anime par année",
-            labels={"x": "Année", "y": "Nombre d'anime"}
+            labels={"x": "Année", "y": "Nombre d'anime"},
+            color_discrete_sequence=["#2b6cb0"]  # couleur d'accent bleu de l'app
         )
         st.plotly_chart(fig2, use_container_width=True)
     else:
@@ -110,7 +119,8 @@ elif rubrique == "Axe 1 : Marché & Formats":
             df_anime.dropna(subset=["score"]),
             x="score",
             nbins=bins_score,
-            title="Distribution des notes"
+            title="Distribution des notes",
+            color_discrete_sequence=["#2b6cb0"]  # couleur d'accent bleu de l'app
         )
         st.plotly_chart(fig_score, use_container_width=True)
 
@@ -121,7 +131,8 @@ elif rubrique == "Axe 1 : Marché & Formats":
             df_episodes_filtre,
             x="episodes",
             nbins=bins_ep,
-            title="Distribution du nombre d'épisodes (0-100)"
+            title="Distribution du nombre d'épisodes (0-100)",
+            color_discrete_sequence=["#2b6cb0"]  # couleur d'accent bleu de l'app
         )
         st.plotly_chart(fig_ep, use_container_width=True)
 
@@ -155,7 +166,7 @@ elif rubrique == "Axe 2 : Succès & Popularité":
         fig1_axe2 = px.imshow(
             corr_matrix,
             text_auto=".2f",  # affiche les valeurs arrondies dans les cases
-            color_continuous_scale="RdBu_r",  # bleu = corrélation négative, rouge = positive
+            color_continuous_scale="Blues",  # dégradé de bleu, cohérent avec le thème de l'app
             zmin=-1, zmax=1,
             title="Corrélation entre engagement du public et score"
         )
@@ -282,7 +293,7 @@ elif rubrique == "Axe 3 : Genres & Acteurs":
                 x=genre_stats['genres'],
                 y=genre_stats['count'],
                 name="Volume d'animés",
-                marker_color='rgba(31, 119, 180, 0.7)',
+                marker_color='rgba(43, 108, 176, 0.8)',  # bleu foncé, cohérent avec le thème de l'app
                 customdata=genre_stats[['count_formatted', 'score_formatted']],
                 hovertemplate="<b>Genre : %{x}</b><br>Volume : %{customdata[0]} animés<extra></extra>"
             ),
@@ -295,7 +306,7 @@ elif rubrique == "Axe 3 : Genres & Acteurs":
                 y=genre_stats['mean_score'],
                 name="Score moyen",
                 mode='lines+markers',
-                line=dict(color='crimson', width=3),
+                line=dict(color='#63b3ed', width=3),  # bleu clair, distinct des barres mais reste dans la même famille
                 marker=dict(size=8),
                 customdata=genre_stats[['count_formatted', 'score_formatted']],
                 hovertemplate="<b>Genre : %{x}</b><br>Score moyen : %{customdata[1]} / 10<extra></extra>"
@@ -343,7 +354,7 @@ elif rubrique == "Axe 3 : Genres & Acteurs":
                 'total_members': 'Membres cumulés'
             },
             color='mean_score',
-            color_continuous_scale='Viridis'
+            color_continuous_scale='Blues'
         )
 
         fig_g2.update_traces(
@@ -385,7 +396,7 @@ elif rubrique == "Axe 3 : Genres & Acteurs":
         fig_g3 = px.imshow(
             pivot_scores,
             text_auto='.2f',
-            color_continuous_scale='YlGnBu',
+            color_continuous_scale='Blues',
             title='Score moyen par combinaison Studio x Genre (Top 10)',
             labels=dict(x='Genre', y='Studio', color='Score moyen'),
             aspect='auto',
